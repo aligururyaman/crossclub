@@ -10,9 +10,14 @@ function Navbar() {
   return (
     <div className='flex flex-col w-full rounded-lg'>
       <div className='flex rounded-lg justify-between items-center p-4 bg-white/80 backdrop-blur-sm shadow-sm'>
-        <div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent" onClick={() => router.push("/")} style={{ cursor: "pointer" }}>
+        <div className='flex flex-row items-baseline gap-10'>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+            onClick={() => router.push("/")}
+            style={{ cursor: "pointer" }}>
             Cross Club
+          </h1>
+          <h1 className='text-lg font-bold bg-gradient-to-r from-red-600 to-purple-600 bg-clip-text text-transparent' onClick={() => router.push("/leaderSystem")} style={{ cursor: "pointer" }}>
+            Liderlik Sistemi
           </h1>
         </div>
 

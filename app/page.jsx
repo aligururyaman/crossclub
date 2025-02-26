@@ -30,9 +30,9 @@ export default function Home() {
         </div>
       </div>
 
-      <main className="flex flex-col min-h-screen pt-16">
+      <main className="flex flex-col min-h-screen ">
         {/* Top Section */}
-        <div className="flex flex-row gap-4 p-4 md:p-5 justify-center items-center">
+        <div className="flex md:flex-row flex-col gap-4 p-4 md:p-5 justify-center items-center">
           <section className="flex-1">
             <div className="flex flex-col gap-4 p-4 md:p-5 justify-center items-center">
               <div className="flex flex-col gap-4 justify-center items-center w-full max-w-4xl">
@@ -91,7 +91,7 @@ export default function Home() {
               <div className="w-full border-t-2 border-gray-200"></div>
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-white px-4 text-sm text-gray-500 font-medium">Tutorial Video</span>
+              <span className="bg-white px-4 text-sm text-gray-500 font-medium rounded-lg">Tutorial Video</span>
             </div>
           </div>
         </div>

@@ -4,8 +4,10 @@ import Image from 'next/image'
 import vs from '@/public/images/vs.png'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/router'
+
 import { Skeleton } from "@/components/ui/skeleton"
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60)
@@ -14,6 +16,7 @@ function formatTime(seconds) {
 }
 
 export default function Page() {
+  const router = useRouter()
   const [isStarted, setIsStarted] = useState(false)
   const [countdown, setCountdown] = useState(null)
   const [teams, setTeams] = useState([null, null])
@@ -33,7 +36,6 @@ export default function Page() {
   const [isLastTenSeconds, setIsLastTenSeconds] = useState(false)
   const [showMessage, setShowMessage] = useState(false)
   const [messageType, setMessageType] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
 
   const getNewMatch = async () => {
     setLoading(true)
@@ -241,35 +243,19 @@ export default function Page() {
           <div className='flex items-center justify-between'>
             <div className='text-center'>
               <div className='relative w-[150px] h-[150px] mx-auto'>
-                {teams[0] ? (
+                {teams[0] && (
                   <div className="relative w-full h-full">
                     <Image
                       src={teams[0]?.img || vs}
                       alt={teams[0]?.name || 'Team 1'}
                       fill
-                      className='object-contain opacity-0 transition-opacity duration-300'
+                      className='object-contain'
                       priority
-                      onLoadingComplete={(img) => {
-                        setIsLoading(false)
-                        if (img) {
-                          img.classList.remove('opacity-0')
-                          img.classList.add('opacity-100')
-                        }
-                      }}
                     />
-                    {isLoading && (
-                      <div className="absolute inset-0">
-                        <Skeleton className="w-full h-full bg-gray-200/60" />
-                      </div>
-                    )}
                   </div>
-                ) : (
-                  <Skeleton className="w-full h-full rounded-lg bg-gray-200/60" />
                 )}
               </div>
-              <h2 className='text-xl font-bold mt-2'>{teams[0]?.name || (
-                <Skeleton className="h-6 w-32 mx-auto bg-gray-200/60" />
-              )}</h2>
+              <h2 className='text-xl font-bold mt-2'>{teams[0]?.name}</h2>
             </div>
 
             <div className='relative w-[100px] h-[100px]'>
@@ -278,35 +264,19 @@ export default function Page() {
 
             <div className='text-center'>
               <div className='relative w-[150px] h-[150px] mx-auto'>
-                {teams[1] ? (
+                {teams[1] && (
                   <div className="relative w-full h-full">
                     <Image
                       src={teams[1]?.img || vs}
                       alt={teams[1]?.name || 'Team 2'}
                       fill
-                      className='object-contain opacity-0 transition-opacity duration-300'
+                      className='object-contain'
                       priority
-                      onLoadingComplete={(img) => {
-                        setIsLoading(false)
-                        if (img) {
-                          img.classList.remove('opacity-0')
-                          img.classList.add('opacity-100')
-                        }
-                      }}
                     />
-                    {isLoading && (
-                      <div className="absolute inset-0">
-                        <Skeleton className="w-full h-full bg-gray-200/60" />
-                      </div>
-                    )}
                   </div>
-                ) : (
-                  <Skeleton className="w-full h-full rounded-lg bg-gray-200/60" />
                 )}
               </div>
-              <h2 className='text-xl font-bold mt-2'>{teams[1]?.name || (
-                <Skeleton className="h-6 w-32 mx-auto bg-gray-200/60" />
-              )}</h2>
+              <h2 className='text-xl font-bold mt-2'>{teams[1]?.name}</h2>
             </div>
           </div>
         </div>
@@ -367,20 +337,31 @@ export default function Page() {
 
       {/* Overlay'ler */}
       {(!isStarted || gameOver) && (
-        <div className='fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50'>
+        <div className='fixed inset-0 flex items-center justify-center z-50'>
           {!isStarted && (
             <div className='fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50'>
               {countdown === null ? (
-                <Button
-                  onClick={() => {
-                    setCountdown(3);
-                  }}
-                  className='px-16 py-8 text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-white 
-                           hover:opacity-90 transition-all duration-300 rounded-2xl shadow-xl 
-                           hover:shadow-blue-500/20 hover:scale-105 transform'
-                >
-                  START
-                </Button>
+                <div className='flex flex-col items-center gap-4'>
+                  <Button
+                    onClick={() => {
+                      setCountdown(3);
+                    }}
+                    className='px-16 py-8 text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-white 
+                             hover:opacity-90 transition-all duration-300 rounded-2xl shadow-xl 
+                             hover:shadow-blue-500/20 hover:scale-105 transform'
+                  >
+                    START
+                  </Button>
+                  <Link href="/">
+                    <Button
+                      className='px-8 py-3 text-lg bg-white text-gray-700 hover:bg-gray-100 
+                               transition-all duration-300 rounded-xl shadow-md 
+                               hover:shadow-blue-500/10 border border-gray-200'
+                    >
+                      Geri Git
+                    </Button>
+                  </Link>
+                </div>
               ) : (
                 <div className='text-9xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent 
                               animate-bounce transform transition-all duration-300'>
@@ -391,20 +372,30 @@ export default function Page() {
           )}
 
           {gameOver && (
-            <div className='bg-white p-8 rounded-xl shadow-lg text-center'>
-              <h2 className='text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4'>
-                Oyun Bitti!
-              </h2>
-              <p className='text-xl text-gray-700 mb-2'>Toplam Puanınız:</p>
-              <p className='text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4'>
-                {score}
-              </p>
-              <Button
-                onClick={() => window.location.reload()}
-                className='bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 px-8 py-3 text-lg'
-              >
-                Tekrar Oyna
-              </Button>
+            <div className='fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50'>
+              <div className='bg-white p-8 rounded-xl shadow-lg text-center'>
+                <h2 className='text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4'>
+                  Oyun Bitti!
+                </h2>
+                <p className='text-xl text-gray-700 mb-2'>Toplam Puanınız:</p>
+                <p className='text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4'>
+                  {score}
+                </p>
+                <div className='flex gap-4'>
+                  <Button
+                    onClick={() => window.location.reload()}
+                    className='bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 px-8 py-3 text-lg'
+                  >
+                    Tekrar Oyna
+                  </Button>
+                  <Button
+                    onClick={() => router.push('/')}
+                    className='bg-gradient-to-r from-blue-600 to-red-600 text-white hover:opacity-90 px-8 py-3 text-lg'
+                  >
+                    Çıkış Yap
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </div>
