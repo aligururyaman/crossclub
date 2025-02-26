@@ -1,40 +1,55 @@
 import { MongoClient } from "mongodb";
 
+if (!process.env.MONGODB_URI) {
+  throw new Error("Please add your Mongo URI to .env.local");
+}
+
 const uri = process.env.MONGODB_URI;
+const options = {
+  maxPoolSize: 10,
+  serverSelectionTimeoutMS: 10000,
+  socketTimeoutMS: 10000,
+};
 
-// Singleton pattern
-let clientPromise = null;
+// Global promise'i cache'le
+let cachedClient = null;
+let cachedDb = null;
 
-async function getClient() {
-  if (!clientPromise) {
-    clientPromise = MongoClient.connect(uri, {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 5000,
-    });
+async function connectToDatabase() {
+  if (cachedDb) {
+    return { client: cachedClient, db: cachedDb };
   }
-  return clientPromise;
+
+  try {
+    const client = await MongoClient.connect(uri, options);
+    const db = client.db("crossClub");
+
+    cachedClient = client;
+    cachedDb = db;
+
+    return { client, db };
+  } catch (error) {
+    console.error("MongoDB Bağlantı Hatası:", error);
+    throw new Error("Veritabanına bağlanılamadı");
+  }
 }
 
 export async function GET(request) {
   try {
+    const { db } = await connectToDatabase();
+
     const { searchParams } = new URL(request.url);
     const previousTeams =
       searchParams.get("previous")?.split(",").filter(Boolean) || [];
     const previousMatches =
       searchParams.get("previousMatches")?.split(",").filter(Boolean) || [];
 
-    const client = await getClient();
-    const db = client.db("crossClub");
-
     // Match koleksiyonundan eşleşmeleri al
     const matches = await db.collection("match").find().toArray();
 
     // Önceki takımları ve eşleşmeleri içermeyen eşleşmeleri filtrele
     const availableMatches = matches.filter((match) => {
-      // Eşleşmenin benzersiz ID'sini oluştur
       const matchId = `${match.team1}-${match.team2}`;
-
       return (
         !previousTeams.includes(match.team1) &&
         !previousTeams.includes(match.team2) &&
@@ -46,24 +61,18 @@ export async function GET(request) {
       return Response.json({ resetPrevious: true });
     }
 
-    // Rastgele bir eşleşme seç
     const selectedMatch =
       availableMatches[Math.floor(Math.random() * availableMatches.length)];
 
-    // Teams koleksiyonundan takım bilgilerini al
-    const team1Data = await db
-      .collection("teams")
-      .findOne({ name: selectedMatch.team1 });
-    const team2Data = await db
-      .collection("teams")
-      .findOne({ name: selectedMatch.team2 });
+    const [team1Data, team2Data] = await Promise.all([
+      db.collection("teams").findOne({ name: selectedMatch.team1 }),
+      db.collection("teams").findOne({ name: selectedMatch.team2 }),
+    ]);
 
-    // Eğer takım bilgileri bulunamazsa retry döndür
     if (!team1Data || !team2Data) {
       return Response.json({ retry: true });
     }
 
-    // Ortak oyuncuları bul
     const commonPlayers = await db
       .collection("players")
       .find({
@@ -71,7 +80,6 @@ export async function GET(request) {
       })
       .toArray();
 
-    // Eşleşmenin benzersiz ID'sini oluştur
     const matchId = `${selectedMatch.team1}-${selectedMatch.team2}`;
 
     return Response.json({
@@ -82,9 +90,9 @@ export async function GET(request) {
     });
   } catch (error) {
     console.error("API Error:", error);
-    return new Response(
-      JSON.stringify({ error: "Veritabanı bağlantı hatası" }),
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }
