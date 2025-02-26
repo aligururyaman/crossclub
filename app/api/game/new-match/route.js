@@ -1,23 +1,19 @@
 import { MongoClient } from "mongodb";
 
 const uri = process.env.MONGODB_URI;
-let client = null;
-let isConnecting = false;
+
+// Singleton pattern
+let clientPromise = null;
 
 async function getClient() {
-  if (client) return client;
-  if (isConnecting) {
-    while (isConnecting) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-    return client;
+  if (!clientPromise) {
+    clientPromise = MongoClient.connect(uri, {
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 5000,
+    });
   }
-
-  isConnecting = true;
-  client = new MongoClient(uri);
-  await client.connect();
-  isConnecting = false;
-  return client;
+  return clientPromise;
 }
 
 export async function GET(request) {
@@ -28,8 +24,8 @@ export async function GET(request) {
     const previousMatches =
       searchParams.get("previousMatches")?.split(",").filter(Boolean) || [];
 
-    const mongoClient = await getClient();
-    const db = mongoClient.db("crossClub");
+    const client = await getClient();
+    const db = client.db("crossClub");
 
     // Match koleksiyonundan eşleşmeleri al
     const matches = await db.collection("match").find().toArray();
@@ -86,6 +82,9 @@ export async function GET(request) {
     });
   } catch (error) {
     console.error("API Error:", error);
-    return Response.json({ retry: true });
+    return new Response(
+      JSON.stringify({ error: "Veritabanı bağlantı hatası" }),
+      { status: 500 }
+    );
   }
 }
