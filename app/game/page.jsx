@@ -15,7 +15,7 @@ function formatTime(seconds) {
 export default function Page() {
   const [isStarted, setIsStarted] = useState(false)
   const [countdown, setCountdown] = useState(null)
-  const [teams, setTeams] = useState([])
+  const [teams, setTeams] = useState([null, null])
   const [previousTeams, setPreviousTeams] = useState([])
   const [currentPlayer, setCurrentPlayer] = useState(null)
   const [inputValue, setInputValue] = useState('')
@@ -29,39 +29,7 @@ export default function Page() {
   const [message, setMessage] = useState('')
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [previousMatches, setPreviousMatches] = useState([])
-
-  const isLastTenSeconds = timeLeft <= 10
-
-  useEffect(() => {
-    if (isStarted && timeLeft > 0) {
-      const timer = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            clearInterval(timer)
-            setGameOver(true)
-            return 0
-          }
-          return prev - 1
-        })
-      }, 1000)
-      return () => clearInterval(timer)
-    }
-  }, [isStarted, timeLeft])
-
-  const startGame = () => {
-    setCountdown(3)
-    const countdownInterval = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) {
-          clearInterval(countdownInterval)
-          setIsStarted(true)
-          getNewMatch()
-          return null
-        }
-        return prev - 1
-      })
-    }, 1000)
-  }
+  const [isLastTenSeconds, setIsLastTenSeconds] = useState(false)
 
   const getNewMatch = async () => {
     setLoading(true)
@@ -72,6 +40,11 @@ export default function Page() {
       const response = await fetch(
         `/api/game/new-match?previous=${previousTeams.join(',')}&previousMatches=${previousMatches.join(',')}`
       )
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+
       const data = await response.json()
 
       if (data.retry) {
@@ -86,14 +59,19 @@ export default function Page() {
         return
       }
 
+      if (!data.teams || !data.teams[0] || !data.teams[1]) {
+        throw new Error('Invalid team data')
+      }
+
       setTeams(data.teams)
-      setCorrectPlayer(data.player)
-      setCurrentPlayer(data.player)
+      setCorrectPlayer(data.player || null)
+      setCurrentPlayer(data.player || null)
       setPreviousTeams(prev => {
         const newTeams = [...prev, data.teams[0].name, data.teams[1].name].slice(-6)
         return newTeams
       })
       setPreviousMatches(prev => [...prev, data.matchId])
+
     } catch (error) {
       console.error('Hata:', error)
       setTimeout(() => getNewMatch(), 500)
@@ -109,7 +87,7 @@ export default function Page() {
     if (value.length > 0 && teams.length === 2) {
       try {
         const response = await fetch(
-          `/api/game/suggestions?q=${value}&team1=${teams[0].name}&team2=${teams[1].name}`
+          `/api/game/suggestions?q=${value}&team1=${teams[0]?.name}&team2=${teams[1]?.name}`
         )
         const data = await response.json()
         setSuggestions(data.players || [])
@@ -131,8 +109,8 @@ export default function Page() {
     )
 
     if (player &&
-      player.team.includes(teams[0].name) &&
-      player.team.includes(teams[1].name)) {
+      player.team.includes(teams[0]?.name) &&
+      player.team.includes(teams[1]?.name)) {
       setScore(prev => prev + 10)
       showMessage('Doğru! +10 puan')
       await getNewMatch()
@@ -162,6 +140,22 @@ export default function Page() {
   useEffect(() => {
     getNewMatch().then(() => setIsInitialLoad(false))
   }, [])
+
+  useEffect(() => {
+    if (isStarted && timeLeft > 0) {
+      const timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(timer)
+            setGameOver(true)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+      return () => clearInterval(timer)
+    }
+  }, [isStarted, timeLeft])
 
   return (
     <div className='min-h-screen bg-gradient-to-br'>
@@ -293,7 +287,11 @@ export default function Page() {
         <div className='fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50'>
           {!isStarted && countdown === null && (
             <Button
-              onClick={startGame}
+              onClick={() => {
+                setCountdown(3)
+                setIsStarted(true)
+                getNewMatch()
+              }}
               className='px-16 py-8 text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-white 
                        hover:opacity-90 transition-all duration-300 rounded-2xl shadow-xl 
                        hover:shadow-blue-500/20 hover:scale-105 transform'
