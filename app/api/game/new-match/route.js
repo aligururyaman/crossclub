@@ -4,11 +4,17 @@ if (!process.env.MONGODB_URI) {
   throw new Error("Please add your Mongo URI to .env.local");
 }
 
-const uri = process.env.MONGODB_URI;
+// TLS/SSL parametrelerini ekle
+const uri =
+  process.env.MONGODB_URI + "&tls=true&tlsAllowInvalidCertificates=true";
+
 const options = {
   maxPoolSize: 10,
   serverSelectionTimeoutMS: 10000,
   socketTimeoutMS: 10000,
+  ssl: true,
+  tls: true,
+  tlsAllowInvalidCertificates: true,
 };
 
 // Global promise'i cache'le

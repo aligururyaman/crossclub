@@ -12,25 +12,25 @@ export default function Footer() {
               Bizi Takip Edin
             </h3>
             <div className="flex space-x-6">
-              <a 
-                href="https://youtube.com" 
-                target="_blank" 
+              <a
+                href="https://youtube.com"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-600 hover:text-red-600 transition-colors"
               >
                 <FaYoutube size={24} />
               </a>
-              <a 
-                href="https://instagram.com" 
-                target="_blank" 
+              <a
+                href="https://instagram.com"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-600 hover:text-pink-600 transition-colors"
               >
                 <FaInstagram size={24} />
               </a>
-              <a 
-                href="https://tiktok.com" 
-                target="_blank" 
+              <a
+                href="https://tiktok.com"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-600 hover:text-black transition-colors"
               >
@@ -41,8 +41,8 @@ export default function Footer() {
 
           {/* Bağış Butonu */}
           <div>
-            <Link 
-              href="/bagis" 
+            <Link
+              href="/"
               className="px-4 py-2 bg-white/80 backdrop-blur-sm text-sm font-medium rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent border-2 border-blue-600/20 hover:border-purple-600/40"
             >
               Bağış Yap
