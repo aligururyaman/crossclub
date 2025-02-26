@@ -5,6 +5,7 @@ import vs from '@/public/images/vs.png'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/router'
+import { Skeleton } from "@/components/ui/skeleton"
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60)
@@ -30,6 +31,9 @@ export default function Page() {
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [previousMatches, setPreviousMatches] = useState([])
   const [isLastTenSeconds, setIsLastTenSeconds] = useState(false)
+  const [showMessage, setShowMessage] = useState(false)
+  const [messageType, setMessageType] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   const getNewMatch = async () => {
     setLoading(true)
@@ -84,10 +88,11 @@ export default function Page() {
     const value = e.target.value
     setInputValue(value)
 
-    if (value.length > 0 && teams.length === 2) {
+    if (value.trim().length > 0 && teams.length === 2) {
       try {
+        const encodedValue = encodeURIComponent(value)
         const response = await fetch(
-          `/api/game/suggestions?q=${value}&team1=${teams[0]?.name}&team2=${teams[1]?.name}`
+          `/api/game/suggestions?q=${encodedValue}&team1=${teams[0]?.name}&team2=${teams[1]?.name}`
         )
         const data = await response.json()
         setSuggestions(data.players || [])
@@ -112,11 +117,13 @@ export default function Page() {
       player.team.includes(teams[0]?.name) &&
       player.team.includes(teams[1]?.name)) {
       setScore(prev => prev + 10)
-      showMessage('Doğru! +10 puan')
+      setMessage('Doğru! +10 puan')
+      setTimeout(() => setMessage(''), 2000)
       await getNewMatch()
     } else {
       setScore(prev => prev - 1)
-      showMessage('Yanlış! -1 puan')
+      setMessage('Yanlış! -1 puan')
+      setTimeout(() => setMessage(''), 2000)
       setInputValue('')
     }
 
@@ -126,15 +133,11 @@ export default function Page() {
   const handlePass = async () => {
     if (loading) return
     setScore(prev => prev - 1)
-    showMessage('Pas! -1 puan')
+    setMessage('Pas! -1 puan')
+    setTimeout(() => setMessage(''), 2000)
     await getNewMatch()
     setInputValue('')
     setSuggestions([])
-  }
-
-  const showMessage = (msg) => {
-    setMessage(msg)
-    setTimeout(() => setMessage(''), 2000)
   }
 
   useEffect(() => {
@@ -156,6 +159,46 @@ export default function Page() {
       return () => clearInterval(timer)
     }
   }, [isStarted, timeLeft])
+
+  useEffect(() => {
+    if (countdown !== null && countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+
+    if (countdown === 0) {
+      setCountdown(null);
+      setIsStarted(true);
+    }
+  }, [countdown]);
+
+  const handleAnswer = async (answer) => {
+    if (answer === 'pass') {
+      setMessageType('pass');
+      setShowMessage(true);
+      setTimeout(() => {
+        setShowMessage(false);
+        getNewMatch();
+      }, 1500);
+      return;
+    }
+
+    if (answer === 'correct') {
+      setMessageType('success');
+      setScore(prev => prev + 1);
+    } else {
+      setMessageType('error');
+    }
+
+    setShowMessage(true);
+    setTimeout(() => {
+      setShowMessage(false);
+      getNewMatch();
+    }, 1500);
+  };
 
   return (
     <div className='min-h-screen bg-gradient-to-br'>
@@ -198,15 +241,35 @@ export default function Page() {
           <div className='flex items-center justify-between'>
             <div className='text-center'>
               <div className='relative w-[150px] h-[150px] mx-auto'>
-                <Image
-                  src={teams[0]?.img || vs}
-                  alt={teams[0]?.name || 'Team 1'}
-                  fill
-                  className='object-contain'
-                  priority
-                />
+                {teams[0] ? (
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={teams[0]?.img || vs}
+                      alt={teams[0]?.name || 'Team 1'}
+                      fill
+                      className='object-contain opacity-0 transition-opacity duration-300'
+                      priority
+                      onLoadingComplete={(img) => {
+                        setIsLoading(false)
+                        if (img) {
+                          img.classList.remove('opacity-0')
+                          img.classList.add('opacity-100')
+                        }
+                      }}
+                    />
+                    {isLoading && (
+                      <div className="absolute inset-0">
+                        <Skeleton className="w-full h-full bg-gray-200/60" />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Skeleton className="w-full h-full rounded-lg bg-gray-200/60" />
+                )}
               </div>
-              <h2 className='text-xl font-bold mt-2'>{teams[0]?.name}</h2>
+              <h2 className='text-xl font-bold mt-2'>{teams[0]?.name || (
+                <Skeleton className="h-6 w-32 mx-auto bg-gray-200/60" />
+              )}</h2>
             </div>
 
             <div className='relative w-[100px] h-[100px]'>
@@ -215,15 +278,35 @@ export default function Page() {
 
             <div className='text-center'>
               <div className='relative w-[150px] h-[150px] mx-auto'>
-                <Image
-                  src={teams[1]?.img || vs}
-                  alt={teams[1]?.name || 'Team 2'}
-                  fill
-                  className='object-contain'
-                  priority
-                />
+                {teams[1] ? (
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={teams[1]?.img || vs}
+                      alt={teams[1]?.name || 'Team 2'}
+                      fill
+                      className='object-contain opacity-0 transition-opacity duration-300'
+                      priority
+                      onLoadingComplete={(img) => {
+                        setIsLoading(false)
+                        if (img) {
+                          img.classList.remove('opacity-0')
+                          img.classList.add('opacity-100')
+                        }
+                      }}
+                    />
+                    {isLoading && (
+                      <div className="absolute inset-0">
+                        <Skeleton className="w-full h-full bg-gray-200/60" />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Skeleton className="w-full h-full rounded-lg bg-gray-200/60" />
+                )}
               </div>
-              <h2 className='text-xl font-bold mt-2'>{teams[1]?.name}</h2>
+              <h2 className='text-xl font-bold mt-2'>{teams[1]?.name || (
+                <Skeleton className="h-6 w-32 mx-auto bg-gray-200/60" />
+              )}</h2>
             </div>
           </div>
         </div>
@@ -271,7 +354,7 @@ export default function Page() {
               {suggestions.map((suggestion, index) => (
                 <div
                   key={index}
-                  className='cursor-pointer hover:bg-gray-100 p-1 rounded'
+                  className='cursor-pointer hover:bg-gray-100 p-1 rounded uppercase'
                   onClick={() => setInputValue(suggestion.name)}
                 >
                   {suggestion.name}
@@ -285,25 +368,25 @@ export default function Page() {
       {/* Overlay'ler */}
       {(!isStarted || gameOver) && (
         <div className='fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50'>
-          {!isStarted && countdown === null && (
-            <Button
-              onClick={() => {
-                setCountdown(3)
-                setIsStarted(true)
-                getNewMatch()
-              }}
-              className='px-16 py-8 text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-white 
-                       hover:opacity-90 transition-all duration-300 rounded-2xl shadow-xl 
-                       hover:shadow-blue-500/20 hover:scale-105 transform'
-            >
-              START
-            </Button>
-          )}
-
-          {countdown !== null && (
-            <div className='text-9xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent 
-                          animate-bounce transform transition-all duration-300'>
-              {countdown}
+          {!isStarted && (
+            <div className='fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50'>
+              {countdown === null ? (
+                <Button
+                  onClick={() => {
+                    setCountdown(3);
+                  }}
+                  className='px-16 py-8 text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-white 
+                           hover:opacity-90 transition-all duration-300 rounded-2xl shadow-xl 
+                           hover:shadow-blue-500/20 hover:scale-105 transform'
+                >
+                  START
+                </Button>
+              ) : (
+                <div className='text-9xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent 
+                              animate-bounce transform transition-all duration-300'>
+                  {countdown}
+                </div>
+              )}
             </div>
           )}
 
@@ -342,9 +425,37 @@ export default function Page() {
       )}
 
       {/* Message Toast */}
-      {message && (
-        <div className="fixed top-4 right-4 bg-black/80 text-white px-4 py-2 rounded animate-fade-out">
-          {message}
+      {showMessage && (
+        <div className='fixed inset-0 flex items-center justify-center z-50'>
+          <div className={`
+            transform transition-all duration-500 
+            ${showMessage ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}
+            px-16 py-8 rounded-2xl shadow-xl backdrop-blur-sm
+            ${messageType === 'success' ? 'bg-gradient-to-r from-blue-600/90 to-purple-600/90' :
+              messageType === 'error' ? 'bg-gradient-to-r from-red-600/90 to-pink-600/90' :
+                'bg-gradient-to-r from-yellow-600/90 to-orange-600/90'}
+          `}>
+            <div className='text-4xl font-bold text-white text-center'>
+              {messageType === 'success' && (
+                <div className='flex items-center gap-3'>
+                  <span>✓</span>
+                  <span>Doğru Cevap!</span>
+                </div>
+              )}
+              {messageType === 'error' && (
+                <div className='flex items-center gap-3'>
+                  <span>✕</span>
+                  <span>Yanlış Cevap!</span>
+                </div>
+              )}
+              {messageType === 'pass' && (
+                <div className='flex items-center gap-3'>
+                  <span>↷</span>
+                  <span>Pas Geçildi</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -352,6 +463,22 @@ export default function Page() {
       {loading && !isInitialLoad && (
         <div className="fixed inset-0 bg-white/80 flex items-center justify-center z-50">
           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
+
+      {/* Mesaj komponenti */}
+      {message && (
+        <div className='fixed inset-0 flex items-center justify-center z-[9999]'>
+          <div className={`px-8 py-4 rounded-xl text-2xl font-bold shadow-xl
+                        animate-bounce backdrop-blur-sm text-white
+                        ${message.includes('Doğru')
+              ? 'bg-gradient-to-r from-blue-600/90 via-green-500/90 to-purple-600/90'
+              : message.includes('Yanlış')
+                ? 'bg-gradient-to-r from-red-600/90 to-purple-600/90'
+                : 'bg-gradient-to-r from-blue-600/90 to-purple-600/90'
+            }`}>
+            {message}
+          </div>
         </div>
       )}
     </div>

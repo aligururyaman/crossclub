@@ -28,11 +28,16 @@ export async function GET(request) {
     const mongoClient = await getClient();
     const db = mongoClient.db("crossClub");
 
-    // Arama sorgusuna uyan oyuncuları bul
+    // Boşlukları regex için güvenli hale getiriyoruz
+    const sanitizedQuery = query.replace(/\s+/g, ".*");
+
     const players = await db
       .collection("players")
       .find({
-        name: { $regex: `^${query}`, $options: "i" }, // Büyük/küçük harf duyarsız, başlangıç harfi eşleşmesi
+        name: {
+          $regex: `(^|\\s).*${sanitizedQuery}`,
+          $options: "i",
+        },
       })
       .toArray();
 
