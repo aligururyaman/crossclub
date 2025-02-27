@@ -1,12 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    formats: ["image/webp"],
-    deviceSizes: [640, 750, 828, 1080, 1200],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256],
-  },
-  webpack: (config) => {
-    return config;
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "1000logos.net",
+      },
+      {
+        protocol: "https",
+        hostname: "upload.wikimedia.org",
+      },
+      {
+        protocol: "https",
+        hostname: "logos-world.net",
+      },
+      // Diğer logo sitelerini de buraya ekleyebilirsiniz
+    ],
   },
 };
 

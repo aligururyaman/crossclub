@@ -5,19 +5,6 @@ import Image from "next/image";
 import startButton from "@/public/images/startButton.png";
 import HowToPlayModal from "@/components/main/HowToPlayModal";
 import { useRouter } from "next/navigation";
-import dynamic from 'next/dynamic';
-
-// Dinamik import ile YouTube bileşenini lazy loading yapıyoruz
-const YouTubePlayer = dynamic(() => import('@/components/main/YouTubePlayer'), {
-  loading: () => (
-    <div className="aspect-video w-full bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg">
-      <div className="w-full h-full bg-gray-200 animate-pulse flex items-center justify-center">
-        <span className="text-gray-500">Video yükleniyor...</span>
-      </div>
-    </div>
-  ),
-  ssr: false // YouTube iframe'i client-side'da yüklenecek
-});
 
 export default function Home() {
   const router = useRouter();
@@ -56,19 +43,11 @@ export default function Home() {
                   <HowToPlayModal />
                 </div>
                 <div className="flex justify-center items-center w-full mt-2 md:mt-4">
-                  <Button
-                    className="h-28 md:h-40 w-full md:w-2/4 p-0 overflow-hidden relative rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 bg-white/80 backdrop-blur-sm"
-                    onClick={goGame}
-                  >
+                  <Button className="h-28 md:h-40 w-full md:w-2/4 p-0 overflow-hidden relative rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 bg-white/80 backdrop-blur-sm" onClick={goGame}>
                     <Image
                       src={startButton}
-                      alt="startButton"
+                      alt="starButton"
                       className="w-full h-full object-cover hover:scale-105 transition-all duration-300 z-0"
-                      priority={true}
-                      loading="eager"
-                      quality={75}
-                      placeholder="blur"
-                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSEkLzYvLy02LjY2OjY2Njo2NjY2NjY2NjY2NjY2NjY2NjY2NjY2Njb/2wBDARUXFyAeIB4gHh4gIB4lICAgICUmJSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICb/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
                     />
                     <div className="absolute inset-0 bg-black/40 z-10 pointer-events-none" />
                     <span className="absolute inset-0 flex items-center justify-center text-white text-2xl md:text-4xl font-bold z-20 pointer-events-none drop-shadow-lg">
@@ -89,20 +68,11 @@ export default function Home() {
                   <HowToPlayModal />
                 </div>
                 <div className="flex justify-center items-center w-full mt-2 md:mt-4">
-                  <Button
-                    className="h-28 md:h-40 w-full md:w-2/4 p-0 overflow-hidden relative rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 bg-white/80 backdrop-blur-sm"
-                    onClick={goGame}
-                    disabled
-                  >
+                  <Button className="h-28 md:h-40 w-full md:w-2/4 p-0 overflow-hidden relative rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 bg-white/80 backdrop-blur-sm" onClick={goGame} disabled>
                     <Image
                       src={startButton}
                       alt="starButton"
                       className="w-full h-full object-cover hover:scale-105 transition-all duration-300 z-0"
-                      priority={true}
-                      loading="eager"
-                      quality={75}
-                      placeholder="blur"
-                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSEkLzYvLy02LjY2OjY2Njo2NjY2NjY2NjY2NjY2NjY2NjY2NjY2Njb/2wBDARUXFyAeIB4gHh4gIB4lICAgICUmJSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICb/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
                     />
                     <div className="absolute inset-0 bg-black/40 z-10 pointer-events-none" />
                     <span className="absolute inset-0 flex items-center justify-center text-white text-2xl md:text-4xl font-bold z-20 pointer-events-none drop-shadow-lg">
@@ -128,7 +98,15 @@ export default function Home() {
 
         {/* Video section */}
         <section className="w-full max-w-4xl mx-auto px-4 mb-8">
-          <YouTubePlayer />
+          <div className="aspect-video w-full bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg">
+            <iframe
+              className="w-full h-full"
+              src="https://www.youtube.com/embed/-HnT24YmmiA"
+              title="Cross Club Tutorial"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
         </section>
       </main>
     </>

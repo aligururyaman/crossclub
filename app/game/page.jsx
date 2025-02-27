@@ -226,7 +226,7 @@ export default function Page() {
         <div className='w-full max-w-xl p-4 rounded-lg bg-white/60 backdrop-blur-sm border border-gray-300 mx-auto'>
           <div className='flex justify-center items-center'>
             <div className='flex gap-2 items-center'>
-              <span className='font-semibold text-gray-700'>Kalan Süre:</span>
+              <span className='font-semibold text-gray-700'>{t('game.timeLeft')}:</span>
               <span
                 className={`font-mono text-2xl font-bold
                   ${isLastTenSeconds
@@ -298,7 +298,7 @@ export default function Page() {
           <div className='flex flex-col md:flex-row gap-2'>
             <Input
               type="text"
-              placeholder="Oyuncu Adı"
+              placeholder={t('game.enterPlayerName')}
               value={inputValue}
               onChange={handleInputChange}
               className="w-full p-4 text-lg rounded-xl h-14 md:h-12"
@@ -309,7 +309,7 @@ export default function Page() {
                 className='flex-1 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 transition-all duration-300 h-14 md:h-12'
                 disabled={loading}
               >
-                Gönder
+                {t('game.submit')}
               </Button>
               <Button
                 onClick={handlePass}
