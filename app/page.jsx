@@ -16,19 +16,7 @@ export default function Home() {
   return (
     <>
       {/* Decorative Background Elements */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        {/* Diagonal Stripes */}
-        <div className="absolute -top-1/2 -right-1/2 w-[150%] h-[150%] rotate-12 flex space-x-8 opacity-20">
-          <div className="w-32 md:w-48 h-[200%] bg-gradient-to-b from-purple-600 to-blue-600 blur-xl"></div>
-          <div className="w-32 md:w-48 h-[200%] bg-gradient-to-b from-blue-600 to-cyan-400 blur-xl"></div>
-          <div className="w-32 md:w-48 h-[200%] bg-gradient-to-b from-purple-600 to-pink-500 blur-xl"></div>
-        </div>
 
-        {/* Bottom Right Blob */}
-        <div className="absolute bottom-0 right-0 w-96 h-96 opacity-30">
-          <div className="w-full h-full bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-400 rounded-full blur-3xl"></div>
-        </div>
-      </div>
 
       <main className="flex flex-col min-h-screen ">
         {/* Top Section */}
