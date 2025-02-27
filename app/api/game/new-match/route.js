@@ -1,4 +1,5 @@
 import { MongoClient } from "mongodb";
+import { cache } from "react";
 
 if (!process.env.MONGODB_URI) {
   throw new Error("Please add your Mongo URI to .env.local");
@@ -21,6 +22,12 @@ const options = {
 let cachedClient = null;
 let cachedDb = null;
 
+// Eşleşmeleri önbelleğe alma
+let cachedMatches = null;
+let cachedTeams = {};
+let lastCacheTime = null;
+const CACHE_DURATION = 1000 * 60 * 60; // 1 saat
+
 async function connectToDatabase() {
   if (cachedDb) {
     return { client: cachedClient, db: cachedDb };
@@ -40,20 +47,45 @@ async function connectToDatabase() {
   }
 }
 
+async function getMatchesAndTeams(db) {
+  const currentTime = Date.now();
+
+  // Önbellek süresi dolmamışsa ve veri varsa, önbellekten döndür
+  if (
+    cachedMatches &&
+    lastCacheTime &&
+    currentTime - lastCacheTime < CACHE_DURATION
+  ) {
+    return { matches: cachedMatches, cachedTeams };
+  }
+
+  // Verileri veritabanından çek
+  const matches = await db.collection("match").find().toArray();
+  cachedMatches = matches;
+
+  // Tüm takımları bir kerede çek
+  const teams = await db.collection("teams").find().toArray();
+  teams.forEach((team) => {
+    cachedTeams[team.name] = team;
+  });
+
+  lastCacheTime = currentTime;
+  return { matches: cachedMatches, cachedTeams };
+}
+
 export async function GET(request) {
   try {
     const { db } = await connectToDatabase();
-
     const { searchParams } = new URL(request.url);
     const previousTeams =
       searchParams.get("previous")?.split(",").filter(Boolean) || [];
     const previousMatches =
       searchParams.get("previousMatches")?.split(",").filter(Boolean) || [];
 
-    // Match koleksiyonundan eşleşmeleri al
-    const matches = await db.collection("match").find().toArray();
+    // Önbellekten verileri al
+    const { matches, cachedTeams } = await getMatchesAndTeams(db);
 
-    // Önceki takımları ve eşleşmeleri içermeyen eşleşmeleri filtrele
+    // Filtreleme işlemi
     const availableMatches = matches.filter((match) => {
       const matchId = `${match.team1}-${match.team2}`;
       return (
@@ -70,15 +102,15 @@ export async function GET(request) {
     const selectedMatch =
       availableMatches[Math.floor(Math.random() * availableMatches.length)];
 
-    const [team1Data, team2Data] = await Promise.all([
-      db.collection("teams").findOne({ name: selectedMatch.team1 }),
-      db.collection("teams").findOne({ name: selectedMatch.team2 }),
-    ]);
+    // Takım verilerini önbellekten al
+    const team1Data = cachedTeams[selectedMatch.team1];
+    const team2Data = cachedTeams[selectedMatch.team2];
 
     if (!team1Data || !team2Data) {
       return Response.json({ retry: true });
     }
 
+    // Oyuncuları çek (bu kısmı da önbelleğe alabiliriz)
     const commonPlayers = await db
       .collection("players")
       .find({

@@ -4,6 +4,10 @@ const uri = process.env.MONGODB_URI;
 let client = null;
 let isConnecting = false;
 
+// Önbellek nesnesi
+const suggestionsCache = new Map();
+const CACHE_DURATION = 1000 * 60 * 5; // 5 dakika
+
 async function getClient() {
   if (client) return client;
   if (isConnecting) {
@@ -25,6 +29,13 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q") || "";
 
+    // Önbellekte varsa ve süresi dolmamışsa, önbellekten döndür
+    const cacheKey = query.toLowerCase();
+    const cachedResult = suggestionsCache.get(cacheKey);
+    if (cachedResult && Date.now() - cachedResult.timestamp < CACHE_DURATION) {
+      return Response.json({ players: cachedResult.players });
+    }
+
     const mongoClient = await getClient();
     const db = mongoClient.db("crossClub");
 
@@ -40,6 +51,12 @@ export async function GET(request) {
         },
       })
       .toArray();
+
+    // Sonuçları önbelleğe al
+    suggestionsCache.set(cacheKey, {
+      players,
+      timestamp: Date.now(),
+    });
 
     return Response.json({ players });
   } catch (error) {

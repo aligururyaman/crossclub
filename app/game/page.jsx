@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from "@/components/ui/skeleton"
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60)
@@ -36,6 +37,7 @@ export default function Page() {
   const [isLastTenSeconds, setIsLastTenSeconds] = useState(false)
   const [showMessage, setShowMessage] = useState(false)
   const [messageType, setMessageType] = useState(null)
+  const { t } = useTranslation()
 
   const getNewMatch = async () => {
     setLoading(true)
@@ -296,7 +298,7 @@ export default function Page() {
           <div className='flex flex-col md:flex-row gap-2'>
             <Input
               type="text"
-              placeholder="Oyuncu adını yazın..."
+              placeholder="Oyuncu Adı"
               value={inputValue}
               onChange={handleInputChange}
               className="w-full p-4 text-lg rounded-xl h-14 md:h-12"
