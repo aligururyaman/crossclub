@@ -11,26 +11,26 @@ function HowToPlayModal() {
   return (
     <Dialog>
       <DialogTrigger className="text-sm text-gray-500 hover:text-blue-600 transition-colors duration-300 underline underline-offset-2">
-        How to Play?
+        Nasıl Oynanır?
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            How to Play Cross Club
+            Cross Club Nasıl Oynanır?
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <p className="text-gray-600">
-            Cross Club is a football trivia game where each round challenges you to identify the common player who has played for both of two given teams.
+            Cross Club, her turda size verilen iki takımda da oynamış ortak oyuncuyu bulmanız gereken bir futbol bilgi oyunudur.
           </p>
           <div className="space-y-2">
-            <h3 className="font-semibold text-gray-800">Game Rules:</h3>
+            <h3 className="font-semibold text-gray-800">Oyun Kuralları:</h3>
             <ul className="list-disc pl-4 space-y-1 text-gray-600">
-              <li>You'll be shown two different football clubs</li>
-              <li>Your task is to find a player who has played for both teams</li>
-              <li>Type the player's name and submit your answer</li>
-              <li>Score points for each correct answer</li>
-              <li>Try to achieve the highest score possible!</li>
+              <li>Size iki farklı futbol kulübü gösterilecek</li>
+              <li>Göreviniz her iki takımda da oynamış bir oyuncuyu bulmak</li>
+              <li>Oyuncunun adını yazın ve cevabınızı gönderin</li>
+              <li>Her doğru cevap için puan kazanın</li>
+              <li>Mümkün olan en yüksek puanı elde etmeye çalışın!</li>
             </ul>
           </div>
         </div>

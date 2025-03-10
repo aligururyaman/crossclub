@@ -2,7 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/navbar/navbar";
 import Footer from "@/components/footer/footer";
-
+import { Toaster } from "sonner";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -55,6 +55,7 @@ export default function RootLayout({ children }) {
         {/* Ana içerik */}
         <main className="flex-grow relative z-10">
           {children}
+          <Toaster position="top-center" />
         </main>
 
         {/* Footer */}

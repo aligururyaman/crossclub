@@ -1,28 +1,70 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { auth } from '@/utils/firestore'
+import { signOut } from 'firebase/auth'
+import { toast } from 'sonner'
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const router = useRouter();
+
+  useEffect(() => {
+    // Auth durumunu dinle
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setUser(user);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast.success("Başarıyla çıkış yapıldı");
+      router.push("/");
+    } catch (error) {
+      toast.error("Çıkış yapılırken bir hata oluştu");
+    }
+  };
+
+  const handleAuthClick = () => {
+    if (user) {
+      handleLogout();
+    } else {
+      router.push("/login");
+    }
+  };
 
   return (
     <div className='flex flex-col w-full rounded-lg'>
       <div className='flex rounded-lg justify-between items-center p-4 bg-white/80 backdrop-blur-sm shadow-sm'>
-        <div>
+        <div className='flex items-center gap-8'>
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent" onClick={() => router.push("/")} style={{ cursor: "pointer" }}>
-            Cross Club
+            Futbol Quiz
           </h1>
+          <button
+            onClick={() => router.push("/scoreboard")}
+            className='hidden md:block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-medium hover:opacity-80 transition-colors duration-300'
+          >
+            Liderlik Tablosu
+          </button>
         </div>
 
         {/* Desktop Menu */}
         <div className='hidden md:flex gap-6 items-center'>
-          <span className='text-gray-700 font-medium hover:text-blue-600 transition-colors duration-300'>
-            Kullanıcı Adı
-          </span>
-          <button className='px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:opacity-90 transition-all duration-300'>
-            Giriş/Çıkış
+          {user && (
+            <span className='bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-medium'>
+              {user.displayName || user.email}
+            </span>
+          )}
+          <button
+            onClick={handleAuthClick}
+            className='px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:opacity-90 transition-all duration-300'
+          >
+            {user ? 'Çıkış Yap' : 'Giriş Yap'}
           </button>
         </div>
 
@@ -40,11 +82,22 @@ function Navbar() {
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className='md:hidden flex flex-col gap-4 p-4 bg-white/80 backdrop-blur-sm shadow-sm'>
-          <span className='text-gray-700 font-medium hover:text-blue-600 transition-colors duration-300 text-center'>
-            Kullanıcı Adı
-          </span>
-          <button className='px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:opacity-90 transition-all duration-300'>
-            Giriş/Çıkış
+          <button
+            onClick={() => router.push("/scoreboard")}
+            className='bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-medium hover:opacity-80 transition-colors duration-300'
+          >
+            Liderlik Tablosu
+          </button>
+          {user && (
+            <span className='bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-medium text-center'>
+              {user.displayName || user.email}
+            </span>
+          )}
+          <button
+            onClick={handleAuthClick}
+            className='px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:opacity-90 transition-all duration-300'
+          >
+            {user ? 'Çıkış Yap' : 'Giriş Yap'}
           </button>
         </div>
       )}

@@ -15,9 +15,6 @@ export default function Home() {
 
   return (
     <>
-      {/* Decorative Background Elements */}
-
-
       <main className="flex flex-col min-h-screen ">
         {/* Top Section */}
         <div className="flex md:flex-row flex-col gap-4 p-4 md:p-5 justify-center items-center">
@@ -26,7 +23,7 @@ export default function Home() {
               <div className="flex flex-col gap-4 justify-center items-center w-full max-w-4xl">
                 <div className="flex flex-col gap-1 justify-between items-center">
                   <h1 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-center">
-                    Cross Club
+                    Kim Oynadı ?
                   </h1>
                   <HowToPlayModal />
                 </div>
@@ -39,7 +36,7 @@ export default function Home() {
                     />
                     <div className="absolute inset-0 bg-black/40 z-10 pointer-events-none" />
                     <span className="absolute inset-0 flex items-center justify-center text-white text-2xl md:text-4xl font-bold z-20 pointer-events-none drop-shadow-lg">
-                      Play
+                      Oyna
                     </span>
                   </Button>
                 </div>
@@ -51,7 +48,7 @@ export default function Home() {
               <div className="flex flex-col gap-4 justify-center items-center w-full max-w-4xl">
                 <div className="flex flex-col gap-1 justify-between items-center">
                   <h1 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-center">
-                    Find Who is this
+                    Online
                   </h1>
                   <HowToPlayModal />
                 </div>

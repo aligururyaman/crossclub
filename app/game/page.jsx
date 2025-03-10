@@ -7,7 +7,10 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useTranslation } from 'react-i18next'
+import { auth, db } from '@/utils/firestore'
+import { onAuthStateChanged } from 'firebase/auth'
+import { doc, setDoc, getDoc } from 'firebase/firestore'
+
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60)
@@ -36,7 +39,9 @@ export default function Page() {
   const [isLastTenSeconds, setIsLastTenSeconds] = useState(false)
   const [showMessage, setShowMessage] = useState(false)
   const [messageType, setMessageType] = useState(null)
-  const { t } = useTranslation()
+  const suggestionsRef = React.useRef(null)
+  const [authChecked, setAuthChecked] = useState(false)
+
 
   const getNewMatch = async () => {
     setLoading(true)
@@ -109,29 +114,50 @@ export default function Page() {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!inputValue.trim() || loading) return
+    e.preventDefault();
+    if (!inputValue.trim() || loading) return;
 
-    const player = suggestions.find(p =>
-      p.name.toLowerCase() === inputValue.trim().toLowerCase()
-    )
+    try {
+      // Önce suggestions API'den oyuncuyu kontrol et
+      const searchResponse = await fetch(
+        `/api/game/suggestions?q=${encodeURIComponent(inputValue.trim())}`
+      );
+      const searchData = await searchResponse.json();
 
-    if (player &&
-      player.team.includes(teams[0]?.name) &&
-      player.team.includes(teams[1]?.name)) {
-      setScore(prev => prev + 10)
-      setMessage('Doğru! +10 puan')
-      setTimeout(() => setMessage(''), 2000)
-      await getNewMatch()
-    } else {
-      setScore(prev => prev - 1)
-      setMessage('Yanlış! -1 puan')
-      setTimeout(() => setMessage(''), 2000)
-      setInputValue('')
+      // Bulunan oyuncular arasından tam eşleşeni bul
+      const player = searchData.players.find(
+        p => p.name.toLowerCase() === inputValue.trim().toLowerCase()
+      );
+
+      console.log('Aranan oyuncu:', inputValue.trim());
+      console.log('Bulunan oyuncu:', player);
+      console.log('Mevcut takımlar:', teams[0].name, teams[1].name);
+      console.log('Oyuncunun takımları:', player?.team);
+
+      // Oyuncu bulunduysa ve her iki takımda da oynamışsa
+      if (player &&
+        player.team.includes(teams[0].name) &&
+        player.team.includes(teams[1].name)) {
+        // Doğru cevap
+        setScore(prev => prev + 10);
+        setMessage('Doğru! +10 puan');
+        setTimeout(() => setMessage(''), 2000);
+        await getNewMatch();
+      } else {
+        // Yanlış cevap
+        setScore(prev => prev - 1);
+        setMessage('Yanlış! -1 puan');
+        setTimeout(() => setMessage(''), 2000);
+        setInputValue('');
+      }
+    } catch (error) {
+      console.error('Hata:', error);
+      setMessage('Bir hata oluştu');
+      setTimeout(() => setMessage(''), 2000);
     }
 
-    setSuggestions([])
-  }
+    setSuggestions([]);
+  };
 
   const handlePass = async () => {
     if (loading) return
@@ -202,6 +228,71 @@ export default function Page() {
       getNewMatch();
     }, 1500);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
+        setSuggestions([])
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // Auth kontrolü
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setAuthChecked(true)
+      if (!user) {
+        router.push('/login')
+      }
+    })
+
+    return () => unsubscribe()
+  }, [router])
+
+  // Oyun bittiğinde skoru kaydet
+  const saveScore = async (finalScore) => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      // Kullanıcının mevcut skorunu kontrol et
+      const userRef = doc(db, "scores", user.uid);
+      const userDoc = await getDoc(userRef);
+      const currentHighScore = userDoc.exists() ? userDoc.data().score : 0;
+
+      // Eğer yeni skor daha yüksekse güncelle
+      if (finalScore > currentHighScore) {
+        await setDoc(userRef, {
+          userId: user.uid,
+          username: user.displayName || user.email.split('@')[0],
+          score: finalScore,
+          updatedAt: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      console.error("Skor kaydedilirken hata:", error);
+    }
+  };
+
+  // Süre bittiğinde çağrılan fonksiyon
+  useEffect(() => {
+    if (timeLeft === 0) {
+      setGameOver(true);
+      saveScore(score);
+    }
+  }, [timeLeft, score]);
+
+  // Auth kontrolü tamamlanana kadar loading göster
+  if (!authChecked) {
+    return (
+      <div className="fixed inset-0 bg-white/80 flex items-center justify-center z-50">
+        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen relative">
@@ -284,7 +375,7 @@ export default function Page() {
 
           {/* Alt kısım - Cevap giriş alanı */}
           <div className="flex flex-col items-center justify-center gap-4 p-4">
-            <div className="flex flex-col md:flex-row w-full max-w-4xl gap-4">
+            <div className="flex flex-col md:flex-col w-full max-w-4xl gap-4">
               <div className="w-full relative">
                 <div className="w-full">
                   <Input
@@ -300,7 +391,7 @@ export default function Page() {
                 </div>
 
                 {suggestions.length > 0 && (
-                  <div className="absolute w-full">
+                  <div className="absolute w-full" ref={suggestionsRef}>
                     <ScrollArea className="w-full mt-1 max-h-[200px] rounded-md border bg-white/80 backdrop-blur-sm z-50">
                       <div className="p-1">
                         {suggestions.map((player, index) => (
@@ -309,7 +400,7 @@ export default function Page() {
                             className="px-3 py-2 hover:bg-gray-100 rounded-md cursor-pointer text-sm"
                             onClick={() => {
                               setInputValue(player.name);
-                              handleInputChange({ target: { value: player.name } });
+                              setSuggestions([]);
                             }}
                           >
                             {player.name}
@@ -323,18 +414,19 @@ export default function Page() {
 
               <div className="flex flex-row md:flex-row gap-2 w-full md:w-auto">
                 <Button
+                  className="flex-1 md:flex-none md:w-32 bg-gradient-to-r from-red-600 to-purple-600 text-white hover:opacity-90 transition-all duration-300"
+                  onClick={handlePass}
+                >
+                  Pas
+                </Button>
+                <Button
                   className="flex-1 md:flex-none md:w-32 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 transition-all duration-300"
                   onClick={handleSubmit}
                   disabled={!inputValue}
                 >
                   Gönder
                 </Button>
-                <Button
-                  className="flex-1 md:flex-none md:w-32 bg-gradient-to-r from-red-600 to-purple-600 text-white hover:opacity-90 transition-all duration-300"
-                  onClick={handlePass}
-                >
-                  Pas
-                </Button>
+
               </div>
             </div>
           </div>
