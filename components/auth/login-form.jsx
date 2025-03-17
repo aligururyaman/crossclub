@@ -39,19 +39,23 @@ export function LoginForm({
 
   const handleGoogleSignIn = async () => {
     try {
+      setIsLoading(true);
       const result = await signInWithPopup(auth, googleProvider);
       if (result.user) {
-        toast.success("Başarıyla giriş yapıldı");
+        toast.success("Google ile giriş başarılı!");
         router.push("/");
       }
     } catch (error) {
+      console.error("Google ile giriş hatası:", error);
       if (error.code === 'auth/popup-closed-by-user') {
-        // Kullanıcı popup'ı kapattığında sessizce geç
-        return;
+        toast.error("Google giriş penceresi kapatıldı");
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        toast.error("İşlem iptal edildi");
       } else {
-        console.error("Google ile giriş hatası:", error);
-        toast.error("Giriş yapılırken bir hata oluştu");
+        toast.error("Google ile giriş yapılırken bir hata oluştu");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -64,7 +68,17 @@ export function LoginForm({
       router.push("/");
     } catch (error) {
       console.error("Giriş hatası:", error);
-      toast.error("Giriş yapılırken bir hata oluştu. Lütfen bilgilerinizi kontrol edin.");
+      if (error.code === 'auth/wrong-password') {
+        toast.error("Şifre yanlış");
+      } else if (error.code === 'auth/user-not-found') {
+        toast.error("Kullanıcı bulunamadı");
+      } else if (error.code === 'auth/invalid-email') {
+        toast.error("Geçersiz email formatı");
+      } else if (error.code === 'auth/invalid-credential') {
+        toast.error("Kullanıcı adı veya şifre hatalı");
+      } else {
+        toast.error("Giriş yapılırken bir hata oluştu");
+      }
     } finally {
       setIsLoading(false);
     }
