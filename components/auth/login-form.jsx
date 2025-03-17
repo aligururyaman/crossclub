@@ -14,7 +14,9 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { loginWithIdentifier, signInWithGoogle } from "@/utils/auth"
+import { loginWithIdentifier } from "@/utils/auth"
+import { auth, googleProvider } from "@/utils/firestore"
+import { signInWithPopup } from "firebase/auth"
 
 export function LoginForm({
   className,
@@ -37,15 +39,19 @@ export function LoginForm({
 
   const handleGoogleSignIn = async () => {
     try {
-      setIsLoading(true);
-      await signInWithGoogle();
-      toast.success("Google ile giriş başarılı!");
-      router.push("/");
+      const result = await signInWithPopup(auth, googleProvider);
+      if (result.user) {
+        toast.success("Başarıyla giriş yapıldı");
+        router.push("/");
+      }
     } catch (error) {
-      console.error("Google ile giriş hatası:", error);
-      toast.error("Google ile giriş yapılırken bir hata oluştu");
-    } finally {
-      setIsLoading(false);
+      if (error.code === 'auth/popup-closed-by-user') {
+        // Kullanıcı popup'ı kapattığında sessizce geç
+        return;
+      } else {
+        console.error("Google ile giriş hatası:", error);
+        toast.error("Giriş yapılırken bir hata oluştu");
+      }
     }
   };
 

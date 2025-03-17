@@ -13,9 +13,25 @@ export default function Home() {
     router.push("/game");
   };
 
+  const goOnline = () => {
+    router.push("/onlineWhoPlay");
+  };
+
   return (
     <>
-      <main className="flex flex-col min-h-screen ">
+      <main className="flex flex-col min-h-screen p-5">
+        <div className="relative w-full h-[200px] overflow-hidden rounded-lg">
+          <Image
+            src="https://images.unsplash.com/photo-1575361204480-aadea25e6e68?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.0.3"
+            alt="banner"
+            fill
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-black/50" />
+          <h1 className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl font-extrabold text-white text-center z-10">
+            Futbol Bilgini Test Et
+          </h1>
+        </div>
         {/* Top Section */}
         <div className="flex md:flex-row flex-col gap-4 p-4 md:p-5 justify-center items-center">
           <section className="flex-1">
@@ -53,7 +69,7 @@ export default function Home() {
                   <HowToPlayModal />
                 </div>
                 <div className="flex justify-center items-center w-full mt-2 md:mt-4">
-                  <Button className="h-28 md:h-40 w-full md:w-2/4 p-0 overflow-hidden relative rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 bg-white/80 backdrop-blur-sm" onClick={goGame} disabled>
+                  <Button className="h-28 md:h-40 w-full md:w-2/4 p-0 overflow-hidden relative rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 bg-white/80 backdrop-blur-sm" onClick={goOnline} disabled>
                     <Image
                       src={startButton}
                       alt="starButton"

@@ -56,6 +56,9 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      fontFamily: {
+        sans: ["var(--font-space-grotesk)"],
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

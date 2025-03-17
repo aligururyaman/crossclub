@@ -55,6 +55,8 @@
     --chart-5: 27 87% 67%;
 
     --radius: 0.5rem;
+
+    --font-space-grotesk: "Space Grotesk", sans-serif;
   }
   .dark {
     --background: 20 14.3% 4.1%;
